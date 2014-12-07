@@ -1,0 +1,1 @@
+This images directory is used by jquery ui css
