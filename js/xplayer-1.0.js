@@ -175,6 +175,7 @@
                 var $loadingOverylay = createLoading();
                 $playerContainer.append($loadingOverylay);
                 $videoContainer = $(document.createElement("div"))
+                                    .attr("id", "video")
                                     .addClass("videoContainer");
                 $playerContainer.append($videoContainer);
                 var $controller = createControlsDiv();
@@ -437,10 +438,13 @@
                 });
 
                 $progressController.on("mousemove", function(e) {
-                    seekx = e.pageX;
+                    //jQuery offset method to translate the event.pageX and event.pageY coordinates 
+                    // from the event into a mouse position relative to the parent
+                    var parentOffset = $(this).offset(); 
+                    seekx = e.pageX - parentOffset.left;
                     seekPos = seekx/$(this).width();
                     mouseOnTime = splitTime(xplayer.duration() * seekPos);
-                    // console.log(mouseOnTime);
+                    console.log(mouseOnTime);
                     $progressController.jquerytooltip("option", "content", mouseOnTime);
                 });
 
