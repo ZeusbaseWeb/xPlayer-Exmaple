@@ -1,13 +1,36 @@
 /**
-* Author: Jinyue Xia
-* the xplayer is a plugin for jQuery
-* xPlayer is a JavaScript Class
-* this is an object-oriented jQuery plugin development
-* the plugin provides APIs for developer's uses
-* the APIs include play(), pause(), seekTo(), currentTime(), etc.
+* Author Jinyue Xia
+* xPlayer is a jQuery plugin
+* XPlayer is a JavaScript Class
+* Dependencies: jQuery, Bootstrap
+* APIs:play(), pause(), seekTo(), currentTime(), etc.
+* Contact: xiajinyue@gmail.com
+*
+* Copyright (c) 2013 Jinyue Xia
+* 
+* Permission is hereby granted, free of charge, to any person obtaining a 
+* copy of this software and associated documentation files (the "Software"), 
+* to deal in the Software without restriction, including without limitation 
+* the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+* and/or sell copies of the Software, and to permit persons to whom the 
+* Software is furnished to do so, subject to the following conditions:
+* 
+* The above copyright notice and this permission notice shall be included in 
+* all copies or substantial portions of the Software.
+* 
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS 
+* IN THE SOFTWARE.
 */
 
 (function($) {
+    // to solve the naming confliction betwen jQuery tooltip and Bootstrap tooltip
+    $.widget.bridge("jquerytooltip", $.ui.tooltip);
+
     var XPlayer = function (video) {
         // var elem = $(element);
         var obj = this;
@@ -26,7 +49,7 @@
         };
 
         /********************** NOTICE!! ****************************
-          Vimeo's and youtube's video playbackRate can't be changed
+          Vimeo's video playbackRate can't be changed
         ************************************************************/
         this.playbackRate = function(speed) {
             if (speed != null) {
@@ -130,27 +153,17 @@
     $.fn.xPlayer = function(options) {
          // Establish our default settings
         var videoInfo = $.extend({
-            url : null,
-            videoID : null
+            url : null
         }, options);
 
         return this.each(function() {
             // variables, element selectors
             var $playerContainer = $(this);
             var $videoContainer,
-                // $btnPlay,
                 $playbtnspan,
                 $pausebtnspan,
-                $progressSlider,
-                $commentBtn,
                 $currTime,
                 $slowMoSlider,
-                $form,
-                $colors,
-                $cancelbtn,
-                $clearCanvasBtn,
-                $markers,
-                $btnSubmit,
                 $speedbtn,
                 $fullscreenbtn,
                 $volume,
@@ -158,125 +171,114 @@
                 $volumeUp,
                 $volumeDown,
                 $volumeOff,
-                $volumeli;
+                $volumeli,
+                $loading;
 
-            var xPlayer;  // globe variable for the plugin to access
+            var xplayer;  // globe variable for the plugin to access
             var element = $(this);
 
-            // when the 
-            var createMainInner = function() {
-                $videoContainer = $(document.createElement("div")).addClass("video");
+            var createVideoContainer = function() {
+                $playerContainer.css({
+                    "position" : "relative"
+                });
+                var $loadingOverylay = createLoading();
+                $playerContainer.append($loadingOverylay);
+                $videoContainer = $(document.createElement("div"))
+                                    .addClass("videoContainer");
                 $playerContainer.append($videoContainer);
-                createDrawCanvas();
-                $drawCanvas = createDrawCanvas();
-                $playerContainer.append($drawCanvas);
-                $colors = createColorPicker();
-                $playerContainer.append($colors);
-                $commentBox = createCommentBox();
-                $playerContainer.append($commentBox);
-                var $controls = createControlsDiv();
-                $playerContainer.append($controls); 
-                $form = createForm();
-                $playerContainer.append($form);
+                var $controller = createControlsDiv();
+                $playerContainer.append($controller);
+            }; // <---- createVideoContainer ends here
 
-            }; // <---- createMainInner ends here
+            // creating loading overlay
+            var createLoading = function() {
+                var $loadingDiv = $(document.createElement("div")).addClass("loading");
 
-            // create controls div inside mainInner
+                var $loadingIcon = $(document.createElement("div")).addClass("loading_icon");
+                var $loadingSpan = $(document.createElement("span")).addClass("glyphicon glyphicon-refresh");
+                $loadingIcon.append($loadingSpan);
+                var $loadingP = $(document.createElement("p")).text("loading");
+                $loadingIcon.append($loadingP);
+                $loadingDiv.append($loadingIcon);
+
+                return $loadingDiv;
+            };
+
+            // create controls div inside player
             var createControlsDiv = function () {
-                var $controls = $(document.createElement("div")).attr("id", "controls");
-                var $markers = $(document.createElement("div")).attr("id", "markers");
-                $markers.appendTo($controls);
+                var $controls = $(document.createElement("div")).attr("class", "videoController");
                 // create progress
                 var $progress = createProgress();
                 $controls.append($progress);
-
                 var $buttons = createButtons();
                 $controls.append($buttons);
-
+                $controls.append('<div class="clear"></div>');
                 return $controls;
 
             };  // <---- createControlDiv ends here
 
-            // create progress/segement sliders
-            var createProgress = function () {
-                var $progress = $(document.createElement("div")).attr("id", "progress");
-                // create progress_box    
-                var $progress_box = $(document.createElement("div")).attr("id", "progress_box");
-                var $videoSeek = $(document.createElement("div"))
-                                .addClass("video-seek") 
-                                .appendTo($progress_box);
-                var $clearDiv = $(document.createElement("div"))
-                                .css("clear", "both")
-                                .appendTo($progress_box);
-                var $sliderrage = $(document.createElement("div"))
-                                    .attr("id", "slider-range")
-                                    .appendTo($progress_box);
-                var $minDiv = $(document.createElement("div"))
-                                    .attr("id", "min")
-                                    .appendTo($progress_box);
-                var $maxDiv = $(document.createElement("div"))
-                                    .attr("id", "max")
-                                    .appendTo($progress_box);
-                $progress_box.appendTo($progress);
-                return $progress;
-            }; 
-     
+            // create progress bar 
+            var createProgress = function() {
+                var $video_progress_div = $(document.createElement("div"))
+                                .attr("id", "video-progress-div")
+                                .attr("title", "");
+
+                var $progress_control = $(document.createElement("div"))
+                                .attr("id", "progress")
+                                .addClass("progress-control");
+
+                var $video_progress = $(document.createElement("div"))
+                                .addClass("progress-bar video-progress progress-bar-danger");
+                var $video_buffer = $(document.createElement("div"))
+                                .addClass("progress-bar video-buffer progress-bar-default");
+                $progress_control.append($video_progress);
+                $progress_control.append($video_buffer);
+                $progress_control.appendTo($video_progress_div);
+                return $video_progress_div;
+            };  // <---- createProgress ends here
+
             // create play buttons    
             var createButtons = function () {
                 var $buttons = $(document.createElement("div"))
-                                .attr("id", "buttons")
-                                .addClass("buttonContainer");
+                                .addClass("buttons");
                 var $playBtn = $(document.createElement("button"))
-                                .attr("type", "button")
-                                .attr("id", "btnPlay")
-                                .addClass("floatLeft playbutton")
-                                .prop("value", "Play")
-                                .html("Play")
-                                .appendTo($buttons);
-                var $speedDiv = $(document.createElement("div"))
-                                .addClass("speeddiv");
-                var $speedText = $(document.createElement("p"))
-                                .addClass("speed_p")
-                                .html("Video playback speed")
-                                .appendTo($speedDiv);
-                var $sloMoSlider = $(document.createElement("div"))
-                                    .attr("id", "sloMo-slider")
-                                    .appendTo($speedDiv);
-                var $stepDiv = $(document.createElement("div"))
-                                .addClass("steps");
-                var $span1 = $(document.createElement("span"))
-                                .addClass("tick")
-                                .html("|" + "<br />" + " 0.1x ")
-                                .appendTo($stepDiv);
-                var $span2 = $(document.createElement("span"))
-                                .addClass("tick")
-                                .css("left", "50%")
-                                .html("|" + "<br />" + " 1x ")
-                                .appendTo($stepDiv);
-                var $span3 = $(document.createElement("span"))
-                                .addClass("tick")
-                                .css("left", "100%")
-                                .html("|" + "<br />" + " 2x ")
-                                .appendTo($stepDiv);
-                $stepDiv.appendTo($speedDiv);
-                $speedDiv.appendTo($buttons);
+                                .attr("id", "play")
+                                .addClass("control_btn playMedia");
+                // var $playSpan = $(document.createElement("span"))
+                //                 .attr("id", "playbtnspan")
+                //                 .addClass("glyphicon glyphicon-play")
+                //                 .attr("title", "play");
+                // $playBtn.append($playSpan);
 
-                var $commentBtn = $(document.createElement("button"))
-                                .attr("type", "button")
-                                .attr("id", "addC")
-                                .addClass("floatLeft commentbutton")
-                                .html("Add Comment")
-                                .appendTo($buttons);
-                $buttons.append($(document.createElement("span"))
-                                .css("clear", "both"));
+                $playBtn.append('<span id="playbtnspan" class="glyphicon glyphicon-play" title="play"></span>' +
+                                '<span id="pausebtnspan" class="glyphicon glyphicon-pause" title="pause" style="display: none;"></span>');                
+                $playBtn.appendTo($buttons);
+                $buttons.append('<h5 class="timer">00:00 / 00:00</h5>');
 
-                var $currTime = $(document.createElement("div"))
-                                .attr("align", "right");
-                var $currTime_p  = $(document.createElement("p"))
-                                    .attr("id", "currTime")               
-                                    .text("00:00 / 00:00")
-                                    .appendTo($currTime);
-                $buttons.append($currTime);
+                var $volDiv = $(document.createElement("button"))
+                                .addClass("control_btn volume");
+                $volDiv.append('<span class="glyphicon glyphicon-volume-down" ></span>' +
+                                '<span class="glyphicon glyphicon-volume-up" style="display: none;"></span>' +
+                                '<span class="glyphicon glyphicon-volume-off" style="display: none;"></span>');
+                $buttons.append($volDiv);
+
+                var $volControlDiv = $(document.createElement("div"))
+                                .attr("id", "volcontrol")
+                                .addClass("volslider");
+                $buttons.append($volControlDiv);
+
+                var $fullscreenBtn = $(document.createElement("button"))
+                                .attr("id", "fullscreenbtn")
+                                .addClass("control_btn clearcolor iconright");
+                $fullscreenBtn.append('<span class="glyphicon glyphicon-fullscreen" > </span>');
+                $buttons.append($fullscreenBtn);
+
+                var $speedBtn = $(document.createElement("button"))
+                                .attr("id", "speedbtn")
+                                .addClass("control_btn clearcolor iconright");
+                $speedBtn.append('<span class="glyphicon glyphicon-cog" > </span>');
+                $buttons.append($speedBtn);
+
                 return $buttons;
             }; // <--- create buttons div ends hers
 
@@ -306,7 +308,6 @@
                 return $speedDiv;
             };
 
-
             // initialize elements in the plug
             var initElements = function () {
                 $videoContainer = $('.videoContainer', $playerContainer);
@@ -314,7 +315,7 @@
                 $play = $('#play', $playerContainer); 
                 $playbtnspan = $('#playbtnspan', $playerContainer);
                 $pausebtnspan = $("#pausebtnspan", $playerContainer);
-                $progressSlider = $(".video-seek", $playerContainer);
+                $progressController = $("#video-progress-div", $playerContainer);
                 $progressBar = $(".video-progress", $playerContainer);
                 $bufferBar = $(".video-buffer", $playerContainer);
                 $currTime = $(".timer", $playerContainer);
@@ -328,26 +329,15 @@
                 $volumeDown = $(".volume .glyphicon-volume-down", $playerContainer);
                 $volumeOff = $(".volume .glyphicon-volume-off", $playerContainer);
                 $volumeli = $(".volumeMedia li", $playerContainer);
+                $loading = $(".loading", $playerContainer);
             }; // <---- initElements ends here   
 
 
             var initVideo = function() {
-                // var $popVideo = Popcorn.smart(".video", 
-                        // "http://vimeo.com/1084537");
-                        // "http://videos.mozilla.org/serv/webmademovies/popcornplug.mp4");
-                        // "https://www.youtube.com/watch?v=9CEdSB0lWRs");  //oscar
-                        // "https://www.youtube.com/watch?v=Smh0QXSmF-A");  // mcg
-                        // "./videos/movie_300.mp4");
-                        // "http://webpages.uncc.edu/~jxia3/lmvp/videos/movie_300.mp4");
-
                 var $popVideo = Popcorn.smart(".videoContainer", videoInfo.url);
-                // var $popVideo = Popcorn.smart(".video", 
-                    // "pro link here");
-                // var $popVideo = vimeoProPop(".video", "./videos/Boundary Nugget Trio.mp4");
-                // var $popVideo = vimeoProPop(".video", "pro link here");
                 $popVideo.on("loadeddata", loadeddataEvent);
-                $popVideo.on("timeupdate", seekUpdate);
-                // $videoContainer.on("timeupdate", $popVideo, seekUpdate);
+                $popVideo.on("timeupdate", timeUpdate);
+                // $videoContainer.on("timeupdate", $popVideo, timeUpdate);
                 $popVideo.on("ratechange", ratechange);
                 $popVideo.on("playing", playingEvent);
                 $popVideo.on("pause", pauseEvent);
@@ -390,60 +380,53 @@
 
             // initialize elements/fields for xPlayer object
             var setupElements = function () {
-                xPlayer.setBtnPlay($playbtnspan);
-                xPlayer.setMainInner($playerContainer);
+                xplayer.setBtnPlay($playbtnspan);
+                xplayer.setMainInner($playerContainer);
             }; // <---- setupElements ends here.
 
             // when loadeddata event is fired
             // xPlayer object is created here
             // element: is the selector's name
             var loadeddataEvent = function() {
-                xPlayer = new XPlayer(this);
-                element.data("player", xPlayer); // get xPlayer object by calling .data("player")
+                xplayer = new XPlayer(this);
+                element.data("player", xplayer); // get xplayer object by calling .data("player")
                 setupElements();
-                initProgressSlider();
-                seekUpdate(); // doing this is for showing video's duration
+                timeUpdate(); // doing this is for showing video's duration
                 initVolume();
                 initSpeedBtn();
+                initProgressBar();
+                $loading.hide();
                 // create a custom event listener when the popcorn video is ready
                 // the event name is DEFINED as "videoReady" !!!
                 element.trigger("videoReady");   
             }; // <---- loadeddateEvent function ends
 
             // when video's timeupdate event is fired
-            var seekUpdate = function() {
-                var currentTime = xPlayer.currentTime();
+            var timeUpdate = function() {
+                var currentTime = xplayer.currentTime();
                 // var totalDuration = $("#video").attr('duration').toFixed(0);
-                var totalDuration = xPlayer.duration();
-                $progressSlider.slider('value', currentTime);
+                var totalDuration = xplayer.duration();
+                // $progressSlider.slider('value', currentTime);
                 $progressBar.width(currentTime*100 / totalDuration + "%");
-                
-                var buffered = xPlayer.buffered().end(0) + xPlayer.buffered().start(0);
-                // if (buffered >= xPlayer.duration()) {
-                //     updateProgress(buffered);
-                // }
-                 updateProgress(buffered);
+                var buffered = xplayer.buffered().end(0) + xplayer.buffered().start(0); 
+                updateProgress(buffered);
                 $currTime.text(splitTime(currentTime)+" / "
                             +splitTime(totalDuration));  
             }; // <---- seekUpate function ends
 
             var progressEvent = function () {
-                if (xPlayer != null) {
-                    var buffered = xPlayer.buffered().end(0) + xPlayer.buffered().start(0);
-                    // console.log("buffered: " + buffered);
+                if (xplayer != null) {
+                    var buffered = xplayer.buffered().end(0) + xplayer.buffered().start(0);
                     updateProgress(buffered);
                 }
             };
 
             var updateProgress = function (buffered) {
-                // var buffered = xPlayer.buffered().end(0) + xPlayer.buffered().start(0);
-                // var bufferedWidth;
-                // console.log("buffered: " + buffered);
                 var playedWidth = $progressBar[0].style.width;
                 // console.log("played width: " + playedWidth);
                 var playedWidthNumber = playedWidth.replace(/\d+% ?/g, "");
-                // bufferedWidth = buffered*100 / xPlayer.duration()  - playedWidthNumber;
-                bufferedWidth = buffered*100 / xPlayer.duration();
+                // bufferedWidth = buffered*100 / xplayer.duration()  - playedWidthNumber;
+                bufferedWidth = buffered*100 / xplayer.duration();
                 // console.log("show buffered width: " + bufferedWidth );
                 $bufferBar.width(bufferedWidth + "%");
             };
@@ -463,34 +446,34 @@
             };
 
             // function for create seek progress slider 
-            var initProgressSlider = function() {
-                $progressSlider.slider({
-                    value: 0,
-                    step: 0.005,
-                    orientation: "horizontal",
-                    range: "min",
-                    max: xPlayer.duration(),
-                    animate: true,                  
-                    slide: function(event, ui) {
-                        xPlayer.seekTo(ui.value);
-                    }
-                }); 
-                $progressSlider.width($(".videoController").width()-8);
-                // $progressSlider.find(".ui-slider-handler").css({
-                //     "width": $controls.width-4
-                // });               
+            var initProgressBar = function() {
+                var seekx = 0;
+                var mouseOnTime = 0;
+                $progressController.on("mousemove", function(e) {
+                    seekx = e.pageX;
+                    seekPos = seekx/$(this).width();
+                    mouseOnTime = splitTime(xplayer.duration() * seekPos);
+                    $progressController.jquerytooltip({
+                        track: true,
+                        content: function() {
+                            return mouseOnTime;
+                        },
+                        tooltipClass: "bottom"
+                    });
+                });
+
+                $progressController.on("click", function(e) {
+                    seekPos = seekx/$(this).width() * 100;
+                    console.log(xplayer.duration() * seekPos);
+                    xplayer.currentTime(xplayer.duration()*seekPos/100);
+                    xplayer.play();
+                });
             }; // <---- initProgressSlider function ends
 
-            // position the controllers
-            var positionController = function(){
-                var videoWidth = $videoContainer.width();
-                $progressSlider.width(videoWidth);
-            }; // <---- positionController function ends
-
-            //~~~~~~~~~~~~~~~~volume control part~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+            //~~~~~~~~~~~~~~~~volume control part~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // initialize volume control
             var initVolume = function() {
-                $vol = xPlayer.volume();
+                $vol = xplayer.volume();
                 if ($vol == 0) {
                     showVolOff();
                 } else if ($vol < 0.5) {
@@ -504,7 +487,7 @@
                     value: $vol,
                     step: 0.01,
                     slide: function (e, ui) {
-                        xPlayer.volume(ui.value);
+                        xplayer.volume(ui.value);
                         if (ui.value == 0) {
                             showVolOff();
                         } else if (ui.value < 0.5) {
@@ -517,18 +500,18 @@
 
                 $volumeUp.on("click", function() {
                     showVolOff();
-                    xPlayer.volume(0);
+                    xplayer.volume(0);
                 });
 
                 $volumeDown.on("click", function() {
                     showVolOff();
-                    xPlayer.volume(0);
+                    xplayer.volume(0);
                 });
 
                 // reseved for furture functonality
                 $volumeOff.on("click", function() {
                     var volume = $volumeSlider.slider( "option", "value" );
-                    xPlayer.volume(volume);
+                    xplayer.volume(volume);
                     if (volume == 0) {
                         showVolOff();
                     } else if (volume < 0.5) {
@@ -581,8 +564,8 @@
                     step:0.1,
                     value:1,
                     slide: function(event, ui){
-                        if (xPlayer != null) {
-                            xPlayer.playbackRate(ui.value);
+                        if (xplayer != null) {
+                            xplayer.playbackRate(ui.value);
                             playVideo();
                         }
                     }
@@ -600,7 +583,7 @@
                     });
                 };
                 var titleText = "change speed";
-                if (!xPlayer.canPlayBackRateChange()) {
+                if (!xplayer.canPlayBackRateChange()) {
                     $speedbtn.css({
                         "color" : "#A0A0A0"
                     });
@@ -632,17 +615,17 @@
                     var ytplayer; 
                     $slider.on('slide', function (ev, ui) {
                         sliderVal = ui.value;
-                        if (xPlayer != null) {
-                            if (xPlayer.mediaType() == "YouTube") {
+                        if (xplayer != null) {
+                            if (xplayer.mediaType() == "YouTube") {
                                 // get iframe's id first
                                 var iframe = document.getElementsByTagName("iframe");
                                 var id = iframe[0].id;
                                 // use callPlayer function cited at the end of this script
                                 callPlayer(id, "setPlaybackRate", [sliderVal]);
                             } 
-                            xPlayer.playbackRate(ui.value);
+                            xplayer.playbackRate(ui.value);
                             // playVideo();
-                            xPlayer.play();
+                            xplayer.play();
                         }
                     });
                     $slider.slider({
@@ -662,7 +645,6 @@
                 });
 
                 $fullscreenbtn.click(function() {
-
                     $fullscreenbtn.tooltip("hide");
                    //  var playerElement = $(".videoContainer");
                     var elem = document.getElementById("video");
@@ -688,10 +670,28 @@
                 });
             }; // <---- function initFullScreenBtn ends here
 
+
+            // Initialize play button
+            var initPlayBtn = function () {
+                $play.on("click", playVideo); 
+                // $playbtnspan.on("click", playVideo); 
+                // $pausebtnspan.on("click", pauseVideo);
+                $videoContainer.on("click", function() {
+                    if (xplayer != null) {
+                        if (xplayer.paused()) {
+                            playVideo();
+                        }
+                        else {
+                            pauseVideo();
+                        }
+                    }
+                });
+            }; // <--- function initPlayBtn ends
+
             // play video
             var playVideo = function() {
-                if (xPlayer.paused()) {
-                    xPlayer.play();
+                if (xplayer.paused()) {
+                    xplayer.play();
                     showPausebtn();
                  } else {
                     pauseVideo();
@@ -700,45 +700,28 @@
 
             // pause video
             var pauseVideo = function() {
-                xPlayer.pause();
+                xplayer.pause();
                 showPlaybtn();
             }; // <--- pauseVideo function ends here
 
-            var showPlaybtn = function (){
+            var showPlaybtn = function() {
                 $playbtnspan.show();
                 $pausebtnspan.hide();
             };
 
-            var showPausebtn = function (){
+            var showPausebtn = function() {
                 $pausebtnspan.show();
                 $playbtnspan.hide();
             };
-            
-     
+        
             //------------------------------------------------------------------------------
             // a list of functions/event listeners need to be called
             // when the plugin is initialized   
-            // createMainInner();
+            createVideoContainer();
             initElements();
             initVideo();
-            positionController();
             initFullScreenBtn();
-            $play.on("click", playVideo); 
-            // $playbtnspan.on("click", playVideo); 
-            // $pausebtnspan.on("click", pauseVideo);
-            $videoContainer.on("click", function() {
-                if (xPlayer != null) {
-                    if (xPlayer.paused())
-                        playVideo();
-                    else pauseVideo();
-                }
-            });
-            // On window resize, resize the progressbar and position other play controls
-            window.onresize = function(event){
-                positionController();
-                $markers.empty();
-            };
-            // $(window).on("load", initCanvas);
+            initPlayBtn();
         }); // <--- return ends
     }; // <---- end of xPlayer plugin
 
@@ -868,16 +851,3 @@ function callPlayer(frame_id, func, args) {
             (add ? window.attachEvent : window.detachEvent)('onmessage', listener);
     }
 }
-// the page actually loads from here
-$( document ).ready($(function() {
-    // there is one div using class mainInner
-    var $player = $('.mainInner');  
-    $player.xPlayer({
-        url : "https://www.youtube.com/watch?v=9bZkp7q19f0"
-    });
-
-    $player.on("videoReady", function () {
-        $(".loading").hide();
-    });
-
-}));

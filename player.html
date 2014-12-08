@@ -11,56 +11,30 @@
 </head>
 
 <body>
-  <div class="mainInner">
-    <div id="video" class="videoContainer">
-    </div>
-    <div class="videoController" style="width: 100%; /* display: none; */">
-      <div id="video-progress-div">
-        <div id="progress" class="progress-control">
-          <div class="progress-bar video-progress progress-bar-danger"> </div>
-          <div class="progress-bar video-buffer progress-bar-default"> </div>
-        </div>
-      </div>
-      <div class="buttons">
-        <button id="play" class="control_btn playMedia">
-            <span id="playbtnspan" class="glyphicon glyphicon-play" title="play"></span>
-            <span id="pausebtnspan" class="glyphicon glyphicon-pause" title="pause" style="display: none;"></span>
-        </button>
-        <h5 class="timer">00:00 / 00:00</h5>
-        <div class="control_btn volume">
-            <span class="glyphicon glyphicon-volume-down" ></span>
-            <span class="glyphicon glyphicon-volume-up" style="display: none;"></span>
-            <span class="glyphicon glyphicon-volume-off" style="display: none;"></span>
-        </div>
-        <div id="volcontrol" class="volslider">
-        </div>
-        <button id="fullscreenbtn" class="control_btn clearcolor iconright">
-            <span class="glyphicon glyphicon-fullscreen" > </span>
-        </button>
-        <button id="speedbtn" class="control_btn clearcolor iconright">
-            <span class="glyphicon glyphicon-cog"> </span>
-        </button>
-        <!-- clear the floating divs(buttons)-->
-        <div class="clear"> 
-        </div>
-      </div>
-    </div>
-    <div class="loading">
-      <div class="loading_icon">
-        <!-- <i class="fa fa-spinner fa-spin fa-5x"></i>  -->
-        <span class="glyphicon glyphicon-refresh"></span> 
-        Loading....
-      </div>
-    </div>
+  <div class="player" style="position: relative">
+    
   </div>
 
   <!--place scripts here, load faster -->
   <script type="text/javascript" src="./js/jquery.min.js"></script>
+  <script src="./js/popcorn-complete.js"> </script>  
   <script type="text/javascript" src="./js/jquery-ui-v1.11.0.min.js"></script>
-  <script src="./js/popcorn-complete.js"> </script>
   <script src="./bootstrap/js/bootstrap.min.js"></script>
   <script type="text/javascript" src="./js/xplayer-1.0.js"></script>
+  <script type="text/javascript">// the page actually loads from here
+    $( document ).ready($(function() {
+        // there is one div using class mainInner
+        var $player = $('.player');  
+        $player.xPlayer({
+            url : "https://www.youtube.com/watch?v=9bZkp7q19f0"
+        });
 
+        $player.on("videoReady", function () {
+            // console.log("video is ready");
+        });
+
+    }));
+    </script>
 </body>
 </html>
 
