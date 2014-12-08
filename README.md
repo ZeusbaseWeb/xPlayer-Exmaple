@@ -2,6 +2,7 @@ xPlayer
 =======
 
 This is a video player supports HTML5 video, Youtube, and Vimeo. Here is how to use the xplayer.js.
+
 Step 1: Files to include
 ```HTML
     /* css */
