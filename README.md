@@ -11,9 +11,9 @@ This is a video player supports HTML5 video, Youtube, and Vimeo. Here is how to 
     <link href="./YourPath/css/xplayer.css" rel="stylesheet" type="text/css"> 
     /* js */
     <script type="text/javascript" src="./js/jquery.min.js"></script>
-    <script src="./js/popcorn-complete.js"> </script>  
+    <script type="text/javascript" src="./js/popcorn-complete.js"> </script>  
     <script type="text/javascript" src="./js/jquery-ui-v1.11.0.min.js"></script>
-    <script src="./bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="./bootstrap/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="./js/xplayer-1.0.js"></script>
 ```
 2. HTML markup structure
