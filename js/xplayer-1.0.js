@@ -3,7 +3,7 @@
 * xPlayer is a jQuery plugin
 * XPlayer is a JavaScript Class
 * Dependencies: jQuery, Bootstrap
-* APIs:play(), pause(), seekTo(), currentTime(), etc.
+* APIs:play(), pause(), seekTo(), currentTime(), volume(), etc.
 * Contact: xiajinyue@gmail.com
 *
 * Copyright (c) 2013 Jinyue Xia
@@ -139,15 +139,6 @@
         this.buffered = function () {
             return this.video.buffered();
         };
-
-        this.setBtnPlay = function ($btnPlay) {
-            this.$btnPlay = $btnPlay;
-        };
-
-        this.setMainInner = function ($mainInner) {
-            this.$mainInner = $mainInner;
-        };
-
     };  // <--- end of definition of object xPlayer
 
     $.fn.xPlayer = function(options) {
@@ -214,7 +205,6 @@
                 $controls.append($buttons);
                 $controls.append('<div class="clear"></div>');
                 return $controls;
-
             };  // <---- createControlDiv ends here
 
             // create progress bar 
@@ -378,19 +368,13 @@
                 }
             };
 
-            // initialize elements/fields for xPlayer object
-            var setupElements = function () {
-                xplayer.setBtnPlay($playbtnspan);
-                xplayer.setMainInner($playerContainer);
-            }; // <---- setupElements ends here.
-
             // when loadeddata event is fired
             // xPlayer object is created here
             // element: is the selector's name
             var loadeddataEvent = function() {
                 xplayer = new XPlayer(this);
                 element.data("player", xplayer); // get xplayer object by calling .data("player")
-                setupElements();
+                // setupElements();
                 timeUpdate(); // doing this is for showing video's duration
                 initVolume();
                 initSpeedBtn();
@@ -423,11 +407,8 @@
 
             var updateProgress = function (buffered) {
                 var playedWidth = $progressBar[0].style.width;
-                // console.log("played width: " + playedWidth);
                 var playedWidthNumber = playedWidth.replace(/\d+% ?/g, "");
-                // bufferedWidth = buffered*100 / xplayer.duration()  - playedWidthNumber;
                 bufferedWidth = buffered*100 / xplayer.duration();
-                // console.log("show buffered width: " + bufferedWidth );
                 $bufferBar.width(bufferedWidth + "%");
             };
 
@@ -449,22 +430,22 @@
             var initProgressBar = function() {
                 var seekx = 0;
                 var mouseOnTime = 0;
+
+                $progressController.jquerytooltip({
+                    track: true
+                    // tooltipClass: "bottom"
+                });
+
                 $progressController.on("mousemove", function(e) {
                     seekx = e.pageX;
                     seekPos = seekx/$(this).width();
                     mouseOnTime = splitTime(xplayer.duration() * seekPos);
-                    $progressController.jquerytooltip({
-                        track: true,
-                        content: function() {
-                            return mouseOnTime;
-                        },
-                        tooltipClass: "bottom"
-                    });
+                    // console.log(mouseOnTime);
+                    $progressController.jquerytooltip("option", "content", mouseOnTime);
                 });
 
                 $progressController.on("click", function(e) {
                     seekPos = seekx/$(this).width() * 100;
-                    console.log(xplayer.duration() * seekPos);
                     xplayer.currentTime(xplayer.duration()*seekPos/100);
                     xplayer.play();
                 });
@@ -669,7 +650,6 @@
                     });
                 });
             }; // <---- function initFullScreenBtn ends here
-
 
             // Initialize play button
             var initPlayBtn = function () {
